@@ -1,0 +1,13 @@
+\color[RED]<html>
+\color[YELLOW]<head>
+\color[GREEN]<title>HTML highlight test page</title>
+\color[YELLOW]</head>
+\color[TURQUOISE]<body>
+This is text in the body.
+\color[PINK]<br>
+\color[DARKGREEN]<h1>This is a heading</h1>
+\color[DARKGRAY]<p>This is a paragraph.</p>
+\color[TURQUOISE]There is more text in the body after the paragraph.
+</body>
+\color[RED]</html>
+

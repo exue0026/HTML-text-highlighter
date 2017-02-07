@@ -1,20 +1,31 @@
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class HTMLhighlighter {
 
-    public static void main(String[] args) {
+    private ArrayList<String> rawText;
+    private ArrayList<String> breadthStack;
+    private ArrayList<String> depthStack;
+    private HashMap<String, String> seqHash;
 
-        String fileName = "input.txt";
-        BufferedReader br = null;
-        ArrayList<String> rawText = null;
-        final int maxTagSize = 7;
+    private final int maxTagSize = 7; //this is a potential problem; if we add <footer> this needs to be changed to 8 and we actually need to change a lot more stuff
+    private boolean hasAppliedSeq;
+    private String rawLine;
+    private String prevRawLine;
+    private String tagName;  //to be set in case there's more than one tag on a rawLine
+    private String defaultEscSeq;
 
-        ArrayList<String> breadthStack = new ArrayList<>();
-        ArrayList<String> depthStack = new ArrayList<>();
-        HashMap<String, String> seqHash = new HashMap<>();
+    public HTMLhighlighter(ArrayList<String> rawText) {
 
+        this.rawText = rawText;
+        breadthStack = new ArrayList<>();
+        depthStack = new ArrayList<>();
+        seqHash = new HashMap<>();
+        fillSeqHash();
+        defaultEscSeq = "\\color[WHITE]";
+    }
+
+    public void fillSeqHash() {
         seqHash.put("<P>", "\\color[DARKGRAY]");
         seqHash.put("<HTML>", "\\color[RED]");
         seqHash.put("<HEAD>", "\\color[YELLOW]");
@@ -27,108 +38,111 @@ public class HTMLhighlighter {
         seqHash.put("<IMG>", "\\color[BROWN]");
         seqHash.put("<UL>", "\\color[GRAY]");
         seqHash.put("<LI>","\\[PURPLE]");
+    }
 
-        //READ THE FILE AND RETRIEVE THE INPUT
-        try {
-            br = new BufferedReader(new FileReader(fileName));
-            rawText = new ArrayList<String>();
-            String line;
-            while((line = br.readLine()) != null) {
-                rawText.add(line);
-            }
-            br.close();
-        }
-        catch(IOException error) {
-            System.out.println("Error: " + error.getMessage());
-        }
+    public void formatHTML() {
 
-        boolean applied  = false;
+        //handles the case when a esc seq is applied before a closing tag on a single line
+        hasAppliedSeq = false;
 
-        for(int i = 0; i < rawText.size(); i++) { //loop through each line of HTML text
+        for(int i = 0; i < rawText.size(); i++) {
 
-            String rawLine = rawText.get(i).trim();
-            String prevRawLine  = (i == 0)? null : rawText.get(i - 1).trim();
-            String tagName = null;
+            //remove any unnecessary leading or trailing whitespace
+            rawLine = rawText.get(i).trim();
+            prevRawLine  = (i == 0)? null : rawText.get(i - 1).trim();
 
-            //if only one HTML tag on that line:
-            if(rawLine.charAt(0) != '<' || (rawLine.length() <= maxTagSize && (!rawLine.toUpperCase().contains("<P>")))) { //p is the only element u can fit on one line without going over max size
-                if(rawLine.toUpperCase().contains("<P>")) {
-                    rawLine = seqHash.get("<P>") + rawLine;
-
-                }
-                else if(!rawLine.contains("/") && rawLine.charAt(0) == '<') {
-                    String esqpSeq = seqHash.get(rawLine.toUpperCase());
-                    rawLine = esqpSeq + rawLine;
-                    if(!rawLine.toUpperCase().contains("BR")) {
-                        depthStack.add(esqpSeq);
-                    }
-                }
-                else {
-                    if(rawLine.charAt(0) != '<'  && prevRawLine.contains("/")) {
-                       rawLine = depthStack.get(depthStack.size() - 1) + rawLine;
-                       depthStack.remove(depthStack.size() - 1);
-                       applied = true;
-
-                    }
-                    else if(rawLine.charAt(0) == '<'){
-                        if(applied == true) {
-                            applied = false;
-                            continue;
-                        }
-                        rawLine = depthStack.get(depthStack.size() - 1) + rawLine;
-                        depthStack.remove(depthStack.size() - 1);
-                    }
-                }
+            //there are no tags on the line OR there is only a single HTML tag in rawLine
+            //<p> is the only element u can fit on one line without going over max size
+            if(rawLine.charAt(0) != '<' || (rawLine.length() <= maxTagSize && !rawLine.toUpperCase().contains("<P>"))) {
+                handleSimpleLine();
             }
             else { //there's one or mor pairs of HTML tags on that line
-
-                breadthStack.clear();
-                boolean isInTag = false;
-              for(int k = 0; k < rawLine.length(); k++) {
-                  char c = rawLine.charAt(k);
-                  if(c != '<') {
-                      continue;
-                  }
-                  else {
-                      tagName = rawLine.substring(k, rawLine.indexOf(">", k) + 1);
-                      if(!tagName.contains("/") || tagName.contains("HREF") || tagName.contains("href")) {
-                          isInTag = true;
-                          String esqpSeq = null;
-                          if(tagName.contains("HREF") || tagName.contains("href")) { //special case when tag is an a tag
-                              esqpSeq = seqHash.get("<A>");
-                          }
-                          else {
-                              esqpSeq = seqHash.get(tagName.toUpperCase());
-                          }
-                          breadthStack.add(esqpSeq); //push into stack
-
-                          //insert the escape sequence
-                          rawLine = rawLine.substring(0, k) + esqpSeq + rawLine.substring(k);
-                          k += rawLine.indexOf(">", k) - k; //readjust cursor
-                      }
-                      else {
-                          //we found a closing tag
-                          if(isInTag = true) {
-                              isInTag = false;
-                              breadthStack.remove(breadthStack.size() - 1); //pop off top element
-                              int index = rawLine.indexOf(">", k) + 1;
-                              if(index > rawLine.length() - 1 || index == -1) {
-                                  break;
-                              }
-                              if(rawLine.substring(index, index + 2).contains("</") || rawLine.charAt(index) != '<') {
-                                  rawLine = rawLine.substring(0, index) + breadthStack.get(breadthStack.size() - 1) + rawLine.substring(index);
-                                  k += rawLine.indexOf(">", k) - k; //readjust cursor
-                              }
-                          }
-                      }
-                  }
-              }
+                handleComplexLine();
             }
-            rawText.set(i, rawLine);
+            rawText.set(i, rawLine); //modify the original raw text
         }
+    }
 
+    private void handleSimpleLine() {
+
+        //if rawLine is an opening tag
+        if (!rawLine.contains("/") && rawLine.charAt(0) == '<') {
+            String escSeq = retrieveEscSeq(rawLine);
+            rawLine = escSeq + rawLine;
+            if(!rawLine.toUpperCase().contains("BR")) { //since BR is void tag, we do not need a pair of esc seq
+                depthStack.add(escSeq);
+            }
+        }
+        //if rawLine is an open sentence that follows a closing tag
+        else if(rawLine.charAt(0) != '<'  && prevRawLine.contains("/")) {
+            rawLine = depthStack.get(depthStack.size() - 1) + rawLine;
+            depthStack.remove(depthStack.size() - 1);
+            hasAppliedSeq = true;
+
+        }
+        //if closing tag; saying "else" includes open sentences with prevLine not containing a closing tag
+        else if(rawLine.charAt(0) == '<'){
+            //already applied esc seq to open sentence
+            if(hasAppliedSeq == true) {
+                hasAppliedSeq = false;
+            }
+            else {
+                rawLine = depthStack.get(depthStack.size() - 1) + rawLine;
+                depthStack.remove(depthStack.size() - 1);
+            }
+        }
+    }
+
+    private void handleComplexLine() {
+
+        breadthStack.clear();
+        for(int k = 0; k < rawLine.length(); k++) {
+
+            if(rawLine.charAt(k) == '<') {
+                //extract the tag
+                tagName = rawLine.substring(k, rawLine.indexOf(">", k) + 1);
+                //if opening tag
+                if(!tagName.contains("/") || tagName.toUpperCase().contains("HREF")) {
+                    String escSeq = null;
+                    if(tagName.toUpperCase().contains("HREF")) { //special case when tag is an <a> tag
+                        escSeq = seqHash.get("<A>");
+                    }
+                    else {
+                        escSeq = retrieveEscSeq(tagName);
+                    }
+                    breadthStack.add(escSeq); //push into stack
+                    //insert the escape sequence into rawLine
+                    rawLine = rawLine.substring(0, k) + escSeq + rawLine.substring(k);
+                }
+                //must be closing tag
+                else {
+                    breadthStack.remove(breadthStack.size() - 1); //pop off top element
+                    int index = rawLine.indexOf(">", k) + 1;
+                    //index of the last closing tag is found or no closing tag is found
+                    if(index > rawLine.length() - 1 || index == -1) {
+                        break;
+                    }
+                    //if another closing tag after closing tag or a sentence
+                    if(rawLine.substring(index, index + 2).contains("</") || rawLine.charAt(index) != '<') {
+                        rawLine = rawLine.substring(0, index) + breadthStack.get(breadthStack.size() - 1) + rawLine.substring(index);
+                        k += rawLine.indexOf(">", k) - k; //readjust cursor
+                    }
+                }
+                k += rawLine.indexOf(">", k) - k; //readjust cursor to combat shift induced by inserting esc seq
+            }
+        }
+    }
+
+    private String retrieveEscSeq(String tagName) {
+        return (seqHash.get(tagName.toUpperCase()) == null)? defaultEscSeq : seqHash.get(tagName.toUpperCase());
+    }
+    public void printHTML() {
         for(String s : rawText) {
             System.out.println(s);
         }
+    }
+
+    public ArrayList<String> getFormattedText() {
+        return rawText;
     }
 }
