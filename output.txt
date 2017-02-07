@@ -1,13 +1,20 @@
 \color[RED]<html>
 \color[YELLOW]<head>
-\color[GREEN]<title>HTML highlight test page</title>
+\color[GREEN]<title> Hi my name is Ethan </title>
+\color[GRAY]<ul>
+\[PURPLE]<li>Hello</li>
+\[PURPLE]<li>Hello</li>
+\color[GRAY]</ul>
 \color[YELLOW]</head>
 \color[TURQUOISE]<body>
-This is text in the body.
-\color[PINK]<br>
-\color[DARKGREEN]<h1>This is a heading</h1>
-\color[DARKGRAY]<p>This is a paragraph.</p>
-\color[TURQUOISE]There is more text in the body after the paragraph.
+\color[TAN]<main>
+\color[DARKGRAY]<p> My favourite site is  \color[BLUE]<a href="http://www.google.com">google.com</a>\color[DARKGRAY] and i like other stuff too</p>
+\color[TAN]yeah
+</main>
+\color[WHITE]<h6>yeah</h6>
+\color[TURQUOISE]yeah
+yeah
+yeah
+yeah
 </body>
 \color[RED]</html>
-

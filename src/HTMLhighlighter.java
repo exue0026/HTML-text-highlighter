@@ -8,7 +8,7 @@ public class HTMLhighlighter {
     private ArrayList<String> depthStack;
     private HashMap<String, String> seqHash;
 
-    private final int maxTagSize = 7; //this is a potential problem; if we add <footer> this needs to be changed to 8 and we actually need to change a lot more stuff
+    private final int maxTagSize = 7;
     private boolean hasAppliedSeq;
     private String rawLine;
     private String prevRawLine;
@@ -32,6 +32,9 @@ public class HTMLhighlighter {
         seqHash.put("<TITLE>", "\\color[GREEN]");
         seqHash.put("<BODY>", "\\color[TURQUOISE]");
         seqHash.put("<H1>", "\\color[DARKGREEN]");
+        seqHash.put("<H2>", "\\color[DARKRED]");
+        seqHash.put("<H3>", "\\color[DARKYELLOW");
+        seqHash.put("<MAIN>", "\\color[TAN]");
         seqHash.put("<A>", "\\color[BLUE]");
         seqHash.put("<BR>", "\\color[PINK]");
         seqHash.put("<DIV>", "\\color[ORANGE]");
@@ -141,7 +144,6 @@ public class HTMLhighlighter {
             System.out.println(s);
         }
     }
-
     public ArrayList<String> getFormattedText() {
         return rawText;
     }

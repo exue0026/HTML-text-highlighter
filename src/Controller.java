@@ -27,7 +27,8 @@ public class Controller {
             br.close();
         }
         catch(IOException error) {
-            System.out.println("Error: " + error.getMessage());
+            System.out.println("Error: ");
+            error.printStackTrace();
         }
     }
 

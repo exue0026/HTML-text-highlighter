@@ -1,12 +1,23 @@
 <html>
+
 <head>
-<title>HTML highlight test page</title>
+<title> Hi my name is Ethan </title>
+<ul>
+    <li>Hello</li>
+    <li>Hello</li>
+</ul>
 </head>
+
 <body>
-This is text in the body.
-<br>
-<h1>This is a heading</h1>
-<p>This is a paragraph.</p>
-There is more text in the body after the paragraph.
+<main>
+<p> My favourite site is  <a href="http://www.google.com">google.com</a> and i like other stuff too</p>
+yeah
+</main>
+<h6>yeah</h6>
+yeah
+yeah
+yeah
+yeah
 </body>
+
 </html>
