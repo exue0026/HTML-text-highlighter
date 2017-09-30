@@ -10,7 +10,7 @@
 
 <body>
 <main>
-<p> My favourite site is  <a href="http://www.google.com">google.com</a> and i like other stuff too</p>
+<p> My favourite site is  <a href="http://www.google.com">google.com</a> and i like other stuff</p>
 yeah
 </main>
 <h6>yeah</h6>
